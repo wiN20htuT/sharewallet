@@ -3,34 +3,29 @@
 <head>
     <meta charset="utf-8">
     <title>Shared Wallet Login & Register</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        h2 { color: #1e293b; margin-bottom: 1.5rem; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .btn-group { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
+        .btn-login { background: #4f46e5; color: white; }
+        .btn-login:hover { background: #4338ca; }
+        .btn-register { background: white; color: #4f46e5; border: 1px solid #4f46e5; }
+        .btn-register:hover { background: #f5f3ff; }
+    </style>
 </head>
-<body class="login-page">
+<body>
 
-    <div class="card login-card">
+    <div class="card">
         <h2>Shared Wallet</h2>
         <input type="email" id="email" placeholder="Email">
-        <div class="input-group">
-            <input type="password" id="password" placeholder="Password (Min 6 chars)">
-            <button type="button" class="toggle-password" onclick="togglePassword()" aria-label="Toggle password visibility">
-                <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-            </button>
-        </div>
-        <p id="errorMessage" class="error-message"></p>
+        <input type="password" id="password" placeholder="Password (Min 6 chars)">
         
         <div class="btn-group">
             <button class="btn-login" onclick="handleLogin()">Login</button>
             <button class="btn-register" onclick="handleRegister()">Register အကောင့်ဖွင့်မည်</button>
-        </div>
-    </div>
-    
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p class="loading-text">Processing...</p>
         </div>
     </div>
 
@@ -38,6 +33,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // *** အရေးကြီးသည်- ဤ Config ကို Firebase Console မှ တစ်ခါပြန်ကူးပြီး အစားထိုးပါ ***
         const firebaseConfig = {
             apiKey: "AIzaSyBBc-raJ2RfLOXHSyAZhYYzYJhSuFI37PM",
             authDomain: "share-wallet-c7ff8.firebaseapp.com",
@@ -45,74 +41,40 @@
             storageBucket: "share-wallet-c7ff8.firebasestorage.app",
             messagingSenderId: "694101492185",
             appId: "1:694101492185:web:8c5205395ffeed193ed9c8",
+
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        window.togglePassword = function() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.querySelector('.eye-icon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.76-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-            }
-        };
-
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-
-        function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-        }
-
+        // Register လုပ်ခြင်း
         window.handleRegister = function() {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            showError('');
-            if(!email || !password) return showError("Email နှင့် Password ဖြည့်ပါ");
-            if(password.length < 6) return showError("Password အနည်းဆုံး ၆ လုံးရှိရပါမည်");
+            if(!email || !password) return alert("Email နှင့် Password ဖြည့်ပါ");
+            if(password.length < 6) return alert("Password အနည်းဆုံး ၆ လုံးရှိရပါမည်");
 
-            showLoading();
             createUserWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    hideLoading();
-                    showError('');
-                    alert("Register အောင်မြင်ပါသည်! အခု Login ဝင်နိုင်ပါပြီ။");
-                })
+                .then(() => alert("Register အောင်မြင်ပါသည်! အခု Login ဝင်နိုင်ပါပြီ။"))
                 .catch((error) => {
-                    hideLoading();
-                    showError("Error: " + error.message);
+                    console.error(error);
+                    alert("Error: " + error.message);
                 });
         };
 
+        // Login လုပ်ခြင်း
         window.handleLogin = function() {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            showError('');
-            if(!email || !password) return showError("ဖြည့်စွက်ပေးပါ");
+            if(!email || !password) return alert("ဖြည့်စွက်ပေးပါ");
 
-            showLoading();
             signInWithEmailAndPassword(auth, email, password)
                 .then(() => {
-                    hideLoading();
-                    window.location.href = "dashboard-v2.html";
+                    window.location.href = "dashboard-v2.html"; 
                 })
-                .catch((error) => {
-                    hideLoading();
-                    showError("Login မအောင်မြင်ပါဟုတ်ပါက: " + error.message);
-                });
+                .catch((error) => alert("Login Error: " + error.message));
         };
     </script>
 </body>
