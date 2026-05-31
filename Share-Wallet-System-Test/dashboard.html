@@ -4,52 +4,39 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Shared Wallet - Dashboard</title>
-    <style>
-        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: auto; }
-        .balance-card { background: #007bff; color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,123,255,0.3); }
-        .balance-card h1 { margin: 10px 0; font-size: 2.5rem; }
-        .filter-group { display: flex; gap: 8px; margin-bottom: 20px; }
-        .filter-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; background: #6c757d; color: white; cursor: pointer; font-size: 14px; }
-        .filter-btn:hover { background: #5a6268; }
-        .form-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .submit-btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .logout-btn { background: none; color: #ff4d4d; text-decoration: underline; border: none; cursor: pointer; margin-top: 20px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
         <div class="balance-card">
-            <p>Total Balance</p>
+            <small>Total Balance</small>
             <h1 id="totalBalance">0 Ks</h1>
         </div>
 
         <div class="filter-group">
-            <button class="filter-btn" onclick="loadData('all')">အားလုံး</button>
-            <button class="filter-btn" onclick="loadData('today')">ဒီနေ့</button>
-            <button class="filter-btn" onclick="loadData('month')">ဒီလ</button>
+            <button class="filter-btn" onclick="loadData('all')">All</button>
+            <button class="filter-btn" onclick="loadData('today')">Today</button>
+            <button class="filter-btn" onclick="loadData('month')">This Month</button>
         </div>
 
-        <div class="form-card">
-            <h3>စာရင်းအသစ်သွင်းရန်</h3>
-            <input type="number" id="amount" placeholder="ပမာဏ (Amount)">
-            <input type="text" id="note" placeholder="မှတ်ချက် (Note)">
+        <div class="card">
+            <h6 style="margin:0">Add New Record</h6>
+            <input type="number" id="amount" placeholder="Amount">
+            <input type="text" id="note" placeholder="Note">
             <select id="type">
-                <option value="expense">အသုံးစရိတ် (Expense)</option>
-                <option value="income">ဝင်ငွေ (Income)</option>
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
             </select>
-            <button class="submit-btn" onclick="addTransaction()">သိမ်းဆည်းမည်</button>
+            <button class="btn btn-success" onclick="addTransaction()">Save</button>
         </div>
 
-        <div class="form-card">
-            <h3>မှတ်တမ်းများ</h3>
+        <div class="card">
+            <h6 style="margin-top:0">History</h6>
             <div id="historyList">Loading...</div>
         </div>
 
-        <center><button class="logout-btn" onclick="logout()">Logout</button></center>
+        <button onclick="logout()" class="btn-logout">Logout</button>
     </div>
 
     <script type="module">
@@ -88,7 +75,7 @@
             const note = document.getElementById('note').value;
             const type = document.getElementById('type').value;
 
-            if (!amount || !note) return alert("ဖြည့်စွက်ပေးပါ");
+            if (!amount || !note) return alert("Please fill in");
 
             try {
                 await addDoc(collection(db, "transactions"), {
@@ -145,11 +132,10 @@
                     else total -= data.amount;
                 });
 
-                document.getElementById('historyList').innerHTML = listHTML || "စာရင်းမရှိသေးပါ";
+                document.getElementById('historyList').innerHTML = listHTML || "No records yet";
                 document.getElementById('totalBalance').innerText = total + " Ks";
             }, (error) => {
                 console.error("Query Error:", error);
-                // Index လိုအပ်ပါက link ပေါ်လာမည်ဖြစ်သည်
             });
         }
 

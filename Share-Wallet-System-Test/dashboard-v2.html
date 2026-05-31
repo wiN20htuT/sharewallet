@@ -26,33 +26,33 @@
         </div>
 
         <button id="toggleFormBtn" onclick="toggleForm()" class="btn btn-primary">
-            + စာရင်းအသစ်သွင်းရန်
+            + Add New Record
         </button>
 
         <div id="transactionForm" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h6 style="margin:0">စာရင်းသွင်းရန်</h6>
+                <h6 style="margin:0">Add Record</h6>
                 <button onclick="toggleForm()" style="background:none; border:none; color:gray; cursor:pointer;">✖</button>
             </div>
-            <input type="number" id="amount" placeholder="ပမာဏ">
-            <input type="text" id="note" placeholder="မှတ်ချက်">
+            <input type="number" id="amount" placeholder="Amount">
+            <input type="text" id="note" placeholder="Note">
             <select id="transactionType">
-                <option value="expense">အသုံးစရိတ် (နုတ်မည်)</option>
-                <option value="income">ဝင်ငွေ/မတည်ငွေ (ပေါင်းမည်)</option>
+                <option value="expense">Expense (Withdraw)</option>
+                <option value="income">Income/Undetermined (Deposit)</option>
             </select>
-            <button onclick="addTransaction()" class="btn btn-success">သိမ်းဆည်းမည်</button>
+            <button onclick="addTransaction()" class="btn btn-success">Save</button>
         </div>
 
         <div class="card">
-            <h6 style="margin-top:0">အဖွဲ့ဝင်များ၏ လက်ကျန်ငွေ အခြေအနေ</h6>
+            <h6 style="margin-top:0">Member Balances</h6>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>အမည်</th>
-                            <th>ထည့်ဝင်ငွေ</th>
-                            <th>သုံးစွဲမှု</th>
-                            <th>လက်ကျန်</th>
+                            <th>Name</th>
+                            <th>Contributed</th>
+                            <th>Spent</th>
+                            <th>Balance</th>
                         </tr>
                     </thead>
                     <tbody id="memberStatsTable"></tbody>
@@ -61,16 +61,16 @@
         </div>
 
         <div class="card">
-            <h6 style="margin-top:0">ငွေသွင်း/နုတ် မှတ်တမ်းများ</h6>
+            <h6 style="margin-top:0">Transaction History</h6>
             <div class="table-responsive table-scroll">
                 <table>
                     <thead>
                         <tr>
-                            <th>ရက်စွဲ</th>
-                            <th>အမည်</th>
-                            <th>အကြောင်းအရာ</th>
-                            <th>အမျိုးအစား</th>
-                            <th style="text-align:right">ပမာဏ</th>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th style="text-align:right">Amount</th>
                         </tr>
                     </thead>
                     <tbody id="transactionHistoryTable"></tbody>
@@ -79,18 +79,18 @@
         </div>
 
         <div class="filter-group">
-            <button class="filter-btn active" id="btn-all" onclick="loadData('all')">အားလုံး</button>
-            <button class="filter-btn" id="btn-today" onclick="loadData('today')">ဒီနေ့</button>
-            <button class="filter-btn" id="btn-month" onclick="loadData('month')">ဒီလ</button>
+            <button class="filter-btn active" id="btn-all" onclick="loadData('all')">All</button>
+            <button class="filter-btn" id="btn-today" onclick="loadData('today')">Today</button>
+            <button class="filter-btn" id="btn-month" onclick="loadData('month')">This Month</button>
         </div>
 
-        <button id="toggleFormbtn" onclick="toggleForm1()" class="btn btn-primary">To Invite</button>
+        <button id="toggleFormbtn" onclick="toggleForm1()" class="btn btn-primary">Invite Members</button>
         <div id="inviteform" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h6 style="margin:0">Invite Member</h6>
                 <button onclick="toggleForm1()" style="background:none; border:none; color:gray; cursor:pointer;">✖</button>
             </div>
-            <input type="email" id="inviteEmail" placeholder="သူငယ်ချင်း၏ Email">
+            <input type="email" id="inviteEmail" placeholder="Friend's Email">
             <button class="btn btn-info" onclick="inviteMember()">Invite & Send Email</button>
         </div>
 
@@ -191,11 +191,10 @@
             const type = document.getElementById('transactionType').value;
             const userEmail = auth.currentUser.email;
 
-            if (!amount || !note) return alert("ပမာဏနှင့် မှတ်ချက် ဖြည့်စွက်ပါ");
+            if (!amount || !note) return alert("Please fill in Amount and Note");
 
-            // Negative Output Fix: Wallet တစ်ခုလုံးမှာရှိတဲ့ ပမာဏထက် ပိုသုံးခွင့်မပြုပါ
             if (type === 'expense' && amount > globalWalletBalance) {
-                return alert(`လက်ကျန်ငွေ မလုံလောက်ပါ။ (လက်ရှိလက်ကျန်: ${globalWalletBalance.toLocaleString()} Ks)`);
+                return alert(`Insufficient balance. (Current balance: ${globalWalletBalance.toLocaleString()} Ks)`);
             }
 
             try {
@@ -245,7 +244,7 @@
                         <td><small>${date}</small></td>
                         <td><strong>${name}</strong></td>
                         <td>${data.note}</td>
-                        <td><span class="badge ${isIncome ? 'bg-success' : 'bg-danger'}">${isIncome ? 'ဝင်ငွေ' : 'အသုံးစရိတ်'}</span></td>
+                        <td><span class="badge ${isIncome ? 'bg-success' : 'bg-danger'}">${isIncome ? 'Income' : 'Expense'}</span></td>
                         <td style="text-align:right; font-weight:bold; color:${isIncome ? 'green':'red'}">
                             ${isIncome ? '+' : '-'}${Number(data.amount).toLocaleString()} Ks
                         </td>
@@ -253,14 +252,14 @@
             });
         }
 
-        window.inviteMember = async function() {
+window.inviteMember = async function() {
             const email = document.getElementById('inviteEmail').value;
-            if(!email) return alert("Email ရိုက်ပါ");
+            if(!email) return alert("Please enter Email");
             try {
                 await addDoc(collection(db, "wallet_members"), { walletId: currentWalletId, memberEmail: email, invitedBy: auth.currentUser.email, timestamp: new Date() });
                 emailjs.init("JVOsK8u42vh1Tr6FQ");
                 emailjs.send('service_3elf14c', 'template_37j2nbj', { invite_email: email, from_name: auth.currentUser.email })
-                .then(() => alert("Email ပို့ပြီးပါပြီ။"));
+                .then(() => alert("Email sent successfully."));
             } catch (e) { alert(e.message); }
         };
 

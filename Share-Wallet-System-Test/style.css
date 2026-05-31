@@ -109,14 +109,11 @@ input::placeholder, select::placeholder {
 
 .toggle-password {
     position: absolute;
-    right: 12px;
+    right: 8px;
     top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
+    transform: translateY(-70%);
     color: var(--text-secondary);
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    background: transparent;
     font-size: 14px;
     padding: 4px;
     width: 32px;
@@ -124,6 +121,12 @@ input::placeholder, select::placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
+    border: none;
+    cursor: default;
+    box-shadow: none;
+    transition: none;
+    overflow: visible;
+    z-index: 2;
 }
 
 .error-message {
@@ -155,19 +158,6 @@ button, .btn {
     overflow: hidden;
 }
 
-button::before, .btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-}
-button:hover::before, .btn:hover::before {
-    left: 100%;
-}
 .btn-login {
     background: var(--primary);
     color: white;
@@ -432,6 +422,15 @@ button[onclick="logout()"]:hover {
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-logout {
+    width: 100%;
+    background: transparent;
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    cursor: pointer;
+    margin-top: 20px;
 }
 
 /* Responsive Design */
