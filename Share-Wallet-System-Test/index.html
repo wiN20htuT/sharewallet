@@ -3,40 +3,20 @@
 <head>
     <meta charset="utf-8">
     <title>Shared Wallet Login & Register</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        h2 { color: #1e293b; margin-bottom: 1.5rem; }
-        .input-group { position: relative; margin: 8px 0; }
-        input { width: 100%; padding: 12px; padding-right: 40px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; padding: 4px; width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; }
-        .toggle-password:hover { color: #4f46e5; background: #f5f3ff; border-color: #4f46e5; }
-        .toggle-password:active { transform: translateY(-50%) scale(0.95); }
-        .error-message { color: #ef4444; font-size: 13px; margin: 8px 0 0 0; text-align: left; min-height: 18px; }
-        .btn-group { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
-        .btn-login { background: #4f46e5; color: white; }
-        .btn-login:hover { background: #4338ca; }
-        .btn-register { background: white; color: #4f46e5; border: 1px solid #4f46e5; }
-        .btn-register:hover { background: #f5f3ff; }
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .loading-content { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 10px rgba(79,70,229,0.2), inset 0 0 20px rgba(0,0,0,0.1); transform: perspective(1000px) rotateX(10deg) rotateY(-5deg); animation: float 2s ease-in-out infinite, pulse 2s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: perspective(1000px) rotateX(10deg) rotateY(-5deg) translateY(0); } 50% { transform: perspective(1000px) rotateX(15deg) rotateY(5deg) translateY(-20px); } }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 10px rgba(79,70,229,0.2), inset 0 0 20px rgba(0,0,0,0.1); } 50% { box-shadow: 0 35px 60px -12px rgba(0,0,0,0.6), 0 0 0 15px rgba(79,70,229,0.3), inset 0 0 30px rgba(79,70,229,0.2); } }
-        .spinner { width: 50px; height: 50px; border: 4px solid #e2e8f0; border-top: 4px solid #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-text { color: #1e293b; font-weight: 600; margin: 0; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="login-page">
 
-    <div class="card">
+    <div class="card login-card">
         <h2>Shared Wallet</h2>
         <input type="email" id="email" placeholder="Email">
         <div class="input-group">
             <input type="password" id="password" placeholder="Password (Min 6 chars)">
             <button type="button" class="toggle-password" onclick="togglePassword()" aria-label="Toggle password visibility">
-                <span class="eye-icon">👁️</span>
+                <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
             </button>
         </div>
         <p id="errorMessage" class="error-message"></p>
@@ -76,10 +56,10 @@
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                eyeIcon.textContent = '🔒';
+                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
             } else {
                 passwordInput.type = 'password';
-                eyeIcon.textContent = '👁️';
+                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.76-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
             }
         };
 
