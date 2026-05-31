@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Professional Shared Wallet</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary: #334155;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --info: #06b6d4;
+            --info-hover: #0891b2;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.4);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+
+        /* Profile Styling */
+        .user-profile {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .profile-info img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .profile-name {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .profile-email {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            padding: 40px 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+
+        .balance-card small {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            display: block;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .balance-card h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: var(--transition);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: var(--success-hover);
+        }
+
+        .btn-info {
+            background: var(--info);
+        }
+
+        .btn-info:hover {
+            background: var(--info-hover);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card h6 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 1.1rem;
+        }
+
+        /* Form Elements */
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--card-bg);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        input::placeholder, select::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Filter Group */
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            background: var(--card-bg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            box-shadow: inset 0 0 0 1px var(--border);
+        }
+
+        .table-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: var(--card-bg);
+            color: var(--text);
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--secondary);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        tbody tr {
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background: var(--secondary);
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: white;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .bg-success {
+            background: var(--success);
+        }
+
+        .bg-danger {
+            background: var(--danger);
+        }
+
+        /* Logout Button */
+        button[onclick="logout()"] {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            cursor: pointer;
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        button[onclick="logout()"]:hover {
+            background: var(--danger);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .balance-card {
+                padding: 30px 20px;
+            }
+
+            .balance-card h1 {
+                font-size: 2rem;
+            }
+
+            .profile-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .filter-group {
+                flex-direction: column;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 12px 8px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+
+            input, select {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="user-profile">
+            <div class="profile-info">
+                <img id="userImg" src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
+                <div>
+                    <div id="userNameDisplay" class="profile-name">Loading...</div>
+                    <div id="userEmailDisplay" class="profile-email">email@example.com</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="balance-card">
+            <small id="walletName">Loading Wallet...</small>
+            <h1 id="totalBalance">0 Ks</h1>
+        </div>
+
+        <button id="toggleFormBtn" onclick="toggleForm()" class="btn btn-primary">
+            + စာရင်းအသစ်သွင်းရန်
+        </button>
+
+        <div id="transactionForm" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h6 style="margin:0">စာရင်းသွင်းရန်</h6>
+                <button onclick="toggleForm()" style="background:none; border:none; color:gray; cursor:pointer;">✖</button>
+            </div>
+            <input type="number" id="amount" placeholder="ပမာဏ">
+            <input type="text" id="note" placeholder="မှတ်ချက်">
+            <select id="transactionType">
+                <option value="expense">အသုံးစရိတ် (နုတ်မည်)</option>
+                <option value="income">ဝင်ငွေ/မတည်ငွေ (ပေါင်းမည်)</option>
+            </select>
+            <button onclick="addTransaction()" class="btn btn-success">သိမ်းဆည်းမည်</button>
+        </div>
+
+        <div class="card">
+            <h6 style="margin-top:0">အဖွဲ့ဝင်များ၏ လက်ကျန်ငွေ အခြေအနေ</h6>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>အမည်</th>
+                            <th>ထည့်ဝင်ငွေ</th>
+                            <th>သုံးစွဲမှု</th>
+                            <th>လက်ကျန်</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberStatsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h6 style="margin-top:0">ငွေသွင်း/နုတ် မှတ်တမ်းများ</h6>
+            <div class="table-responsive table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ရက်စွဲ</th>
+                            <th>အမည်</th>
+                            <th>အကြောင်းအရာ</th>
+                            <th>အမျိုးအစား</th>
+                            <th style="text-align:right">ပမာဏ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionHistoryTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <button class="filter-btn active" id="btn-all" onclick="loadData('all')">အားလုံး</button>
+            <button class="filter-btn" id="btn-today" onclick="loadData('today')">ဒီနေ့</button>
+            <button class="filter-btn" id="btn-month" onclick="loadData('month')">ဒီလ</button>
+        </div>
+
+        <button id="toggleFormbtn" onclick="toggleForm1()" class="btn btn-primary">To Invite</button>
+        <div id="inviteform" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h6 style="margin:0">Invite Member</h6>
+                <button onclick="toggleForm1()" style="background:none; border:none; color:gray; cursor:pointer;">✖</button>
+            </div>
+            <input type="email" id="inviteEmail" placeholder="သူငယ်ချင်း၏ Email">
+            <button class="btn btn-info" onclick="inviteMember()">Invite & Send Email</button>
+        </div>
+
+        <button onclick="logout()" style="width:100%; background:none; border:none; color:red; cursor:pointer; margin-top:10px; padding:20px">Logout</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBc-raJ2RfLOXHSyAZhYYzYJhSuFI37PM",
+                authDomain: "share-wallet-c7ff8.firebaseapp.com",
+                projectId: "share-wallet-c7ff8",
+                storageBucket: "share-wallet-c7ff8.firebasestorage.app",
+                messagingSenderId: "694101492185",
+                appId: "1:694101492185:web:8c5205395ffeed193ed9c8",
+                
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentWalletId = null;
+        let memberStatsData = {}; 
+        let globalWalletBalance = 0; // Negative value check အတွက်
+
+        // ၁။ Logic Fix: အဖွဲ့ဝင်လက်ကျန်ဇယား (Negative Balance Fix)
+        async function updateMemberStatsV2() {
+            if (!currentWalletId) return;
+            const transactionsSnapshot = await getDocs(query(collection(db, "transactions"), where("walletId", "==", currentWalletId)));
+            const membersSnapshot = await getDocs(query(collection(db, "wallet_members"), where("walletId", "==", currentWalletId)));
+
+            memberStatsData = {};
+            globalWalletBalance = 0;
+
+            // Members initialization
+            membersSnapshot.forEach(doc => {
+                const email = doc.data().memberEmail || doc.data().userEmail;
+                if (email) memberStatsData[email] = { contributed: 0, spent: 0 };
+            });
+
+            // Transactions calculation
+            transactionsSnapshot.forEach(doc => {
+                const d = doc.data();
+                const amt = Number(d.amount);
+                if (!memberStatsData[d.userEmail]) {
+                    memberStatsData[d.userEmail] = { contributed: 0, spent: 0 };
+                }
+
+                if (d.type === 'income') {
+                    memberStatsData[d.userEmail].contributed += amt;
+                    globalWalletBalance += amt;
+                } else {
+                    memberStatsData[d.userEmail].spent += amt;
+                    globalWalletBalance -= amt;
+                }
+            });
+
+            document.getElementById('totalBalance').innerText = globalWalletBalance.toLocaleString() + " Ks";
+
+            const tbody = document.getElementById('memberStatsTable');
+            tbody.innerHTML = '';
+            for (const email in memberStatsData) {
+                const { contributed, spent } = memberStatsData[email];
+                const balance = contributed - spent;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${email.split('@')[0].toUpperCase()}</strong></td>
+                        <td>${contributed.toLocaleString()}</td>
+                        <td>${spent.toLocaleString()}</td>
+                        <td style="color:${balance < 0 ? 'red':'green'}; font-weight:bold">${balance.toLocaleString()} Ks</td>
+                    </tr>`;
+            }
+        }
+
+        // ၂။ Form Toggles (Fix Bug: form1 variable correctly mapped)
+        window.toggleForm = function() {
+            const form = document.getElementById('transactionForm');
+            const btn = document.getElementById('toggleFormBtn');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            btn.style.display = form.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.toggleForm1 = function() {
+            const form1 = document.getElementById('inviteform');
+            const btn1 = document.getElementById('toggleFormbtn');
+            form1.style.display = form1.style.display === 'none' ? 'block' : 'none';
+            btn1.style.display = form1.style.display === 'none' ? 'block' : 'none';
+        };
+
+        // ၃။ Logic Fix: Negative Value Check
+        window.addTransaction = async function() {
+            const amount = Number(document.getElementById('amount').value);
+            const note = document.getElementById('note').value;
+            const type = document.getElementById('transactionType').value;
+            const userEmail = auth.currentUser.email;
+
+            if (!amount || !note) return alert("ပမာဏနှင့် မှတ်ချက် ဖြည့်စွက်ပါ");
+
+            // Negative Output Fix: Wallet တစ်ခုလုံးမှာရှိတဲ့ ပမာဏထက် ပိုသုံးခွင့်မပြုပါ
+            if (type === 'expense' && amount > globalWalletBalance) {
+                return alert(`လက်ကျန်ငွေ မလုံလောက်ပါ။ (လက်ရှိလက်ကျန်: ${globalWalletBalance.toLocaleString()} Ks)`);
+            }
+
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    amount, note, type, timestamp: new Date(), userEmail, walletId: currentWalletId
+                });
+                document.getElementById('amount').value = '';
+                document.getElementById('note').value = '';
+                await updateMemberStatsV2();
+                await loadData('all');
+                toggleForm();
+            } catch (e) { alert(e.message); }
+        };
+
+        // ၄။ Data Load & Display
+        window.loadData = async function(filter) {
+            if (!currentWalletId) return;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(document.getElementById('btn-' + filter)) document.getElementById('btn-' + filter).classList.add('active');
+
+            const q = query(collection(db, "transactions"), where("walletId", "==", currentWalletId), orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
+            const now = new Date();
+            let filteredData = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (!data.timestamp) return;
+                const txDate = data.timestamp.toDate();
+
+                if (filter === 'today' && txDate.toDateString() === now.toDateString()) filteredData.push(data);
+                else if (filter === 'month' && txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear()) filteredData.push(data);
+                else if (filter === 'all') filteredData.push(data);
+            });
+            displayTransactionsTable(filteredData);
+        };
+
+        function displayTransactionsTable(dataArray) {
+            const historyBody = document.getElementById('transactionHistoryTable');
+            historyBody.innerHTML = '';
+            dataArray.forEach(data => {
+                const date = data.timestamp ? data.timestamp.toDate().toLocaleString('en-GB') : '-';
+                const name = data.userEmail ? data.userEmail.split('@')[0].toUpperCase() : '-';
+                const isIncome = data.type === 'income';
+                historyBody.innerHTML += `
+                    <tr>
+                        <td><small>${date}</small></td>
+                        <td><strong>${name}</strong></td>
+                        <td>${data.note}</td>
+                        <td><span class="badge ${isIncome ? 'bg-success' : 'bg-danger'}">${isIncome ? 'ဝင်ငွေ' : 'အသုံးစရိတ်'}</span></td>
+                        <td style="text-align:right; font-weight:bold; color:${isIncome ? 'green':'red'}">
+                            ${isIncome ? '+' : '-'}${Number(data.amount).toLocaleString()} Ks
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        window.inviteMember = async function() {
+            const email = document.getElementById('inviteEmail').value;
+            if(!email) return alert("Email ရိုက်ပါ");
+            try {
+                await addDoc(collection(db, "wallet_members"), { walletId: currentWalletId, memberEmail: email, invitedBy: auth.currentUser.email, timestamp: new Date() });
+                emailjs.init("JVOsK8u42vh1Tr6FQ");
+                emailjs.send('service_3elf14c', 'template_37j2nbj', { invite_email: email, from_name: auth.currentUser.email })
+                .then(() => alert("Email ပို့ပြီးပါပြီ။"));
+            } catch (e) { alert(e.message); }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const name = user.email.split('@')[0].toUpperCase();
+                document.getElementById('userNameDisplay').innerText = name;
+                document.getElementById('userEmailDisplay').innerText = user.email;
+                document.getElementById('userImg').src = `https://ui-avatars.com/api/?name=${name}&background=random&color=fff`;
+
+                const qInvite = query(collection(db, "wallet_members"), where("memberEmail", "==", user.email));
+                const snapInvite = await getDocs(qInvite);
+                
+                if (!snapInvite.empty) {
+                    currentWalletId = snapInvite.docs[0].data().walletId;
+                    document.getElementById('walletName').innerText = "Shared Wallet Access";
+                } else {
+                    currentWalletId = "wallet_" + user.uid;
+                    document.getElementById('walletName').innerText = "Personal Wallet";
+                }
+                
+                await updateMemberStatsV2();
+                await loadData('all');
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        window.logout = () => signOut(auth);
+    </script>
+</body>
+</html>

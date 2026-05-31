@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shared Wallet - Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        .balance-card { background: #007bff; color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,123,255,0.3); }
+        .balance-card h1 { margin: 10px 0; font-size: 2.5rem; }
+        .filter-group { display: flex; gap: 8px; margin-bottom: 20px; }
+        .filter-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; background: #6c757d; color: white; cursor: pointer; font-size: 14px; }
+        .filter-btn:hover { background: #5a6268; }
+        .form-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { background: none; color: #ff4d4d; text-decoration: underline; border: none; cursor: pointer; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="balance-card">
+            <p>Total Balance</p>
+            <h1 id="totalBalance">0 Ks</h1>
+        </div>
+
+        <div class="filter-group">
+            <button class="filter-btn" onclick="loadData('all')">အားလုံး</button>
+            <button class="filter-btn" onclick="loadData('today')">ဒီနေ့</button>
+            <button class="filter-btn" onclick="loadData('month')">ဒီလ</button>
+        </div>
+
+        <div class="form-card">
+            <h3>စာရင်းအသစ်သွင်းရန်</h3>
+            <input type="number" id="amount" placeholder="ပမာဏ (Amount)">
+            <input type="text" id="note" placeholder="မှတ်ချက် (Note)">
+            <select id="type">
+                <option value="expense">အသုံးစရိတ် (Expense)</option>
+                <option value="income">ဝင်ငွေ (Income)</option>
+            </select>
+            <button class="submit-btn" onclick="addTransaction()">သိမ်းဆည်းမည်</button>
+        </div>
+
+        <div class="form-card">
+            <h3>မှတ်တမ်းများ</h3>
+            <div id="historyList">Loading...</div>
+        </div>
+
+        <center><button class="logout-btn" onclick="logout()">Logout</button></center>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+            const firebaseConfig = {
+                apiKey: "AIzaSyBBc-raJ2RfLOXHSyAZhYYzYJhSuFI37PM",
+                authDomain: "share-wallet-c7ff8.firebaseapp.com",
+                projectId: "share-wallet-c7ff8",
+                storageBucket: "share-wallet-c7ff8.firebasestorage.app",
+                messagingSenderId: "694101492185",
+                appId: "1:694101492185:web:8c5205395ffeed193ed9c8",
+                measurementId: "G-KVNP86NG6L"
+            };
+
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let unsubscribe = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.loadData('all');
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // စာရင်းသွင်းခြင်း
+        window.addTransaction = async function() {
+            const amount = document.getElementById('amount').value;
+            const note = document.getElementById('note').value;
+            const type = document.getElementById('type').value;
+
+            if (!amount || !note) return alert("ဖြည့်စွက်ပေးပါ");
+
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    amount: Number(amount),
+                    note: note,
+                    type: type,
+                    timestamp: new Date(),
+                    userId: auth.currentUser.uid
+                });
+                document.getElementById('amount').value = '';
+                document.getElementById('note').value = '';
+            } catch (e) {
+                alert("Error adding transaction: " + e.message);
+            }
+        };
+
+        // ဒေတာများ ပြန်ဖတ်ခြင်း (Filter Logic ပါဝင်သည်)
+        window.loadData = function(filterType = 'all') {
+            if (unsubscribe) unsubscribe();
+
+            const transactionsRef = collection(db, "transactions");
+            let q;
+            const now = new Date();
+
+            if (filterType === 'today') {
+                const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+                q = query(transactionsRef, where("userId", "==", auth.currentUser.uid), where("timestamp", ">=", startOfToday), orderBy("timestamp", "desc"));
+            } else if (filterType === 'month') {
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                q = query(transactionsRef, where("userId", "==", auth.currentUser.uid), where("timestamp", ">=", startOfMonth), orderBy("timestamp", "desc"));
+            } else {
+                q = query(transactionsRef, where("userId", "==", auth.currentUser.uid), orderBy("timestamp", "desc"));
+            }
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                let listHTML = "";
+                let total = 0;
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const color = data.type === 'income' ? '#28a745' : '#dc3545';
+                    const sign = data.type === 'income' ? '+' : '-';
+                    
+                    listHTML += `
+                        <div class="history-item">
+                            <div>
+                                <strong>${data.note}</strong>
+                                <br><small style="color:#888;">${data.timestamp.toDate().toLocaleDateString()}</small>
+                            </div>
+                            <span style="color: ${color}; font-weight: bold;">${sign}${data.amount} Ks</span>
+                        </div>`;
+                    
+                    if (data.type === "income") total += data.amount;
+                    else total -= data.amount;
+                });
+
+                document.getElementById('historyList').innerHTML = listHTML || "စာရင်းမရှိသေးပါ";
+                document.getElementById('totalBalance').innerText = total + " Ks";
+            }, (error) => {
+                console.error("Query Error:", error);
+                // Index လိုအပ်ပါက link ပေါ်လာမည်ဖြစ်သည်
+            });
+        }
+
+        window.logout = function() {
+            signOut(auth).then(() => window.location.href = "index.html");
+        };
+    </script>
+</body>
+</html>
