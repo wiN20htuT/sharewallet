@@ -2,12 +2,12 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Shared Wallet - Login</title>
+    <title>Shared Wallet - Register</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="card">
-        <h2>Shared Wallet</h2>
+        <h2>Create Account</h2>
         <input type="email" id="email" placeholder="Email">
         <div class="input-group">
             <input type="password" id="password" placeholder="Password (Min 6 chars)">
@@ -25,8 +25,8 @@
         <p id="errorMessage" class="error-message"></p>
         
         <div class="btn-group">
-            <button class="btn-login" onclick="handleLogin()">Login</button>
-            <button class="btn-link" onclick="window.location.href='register.html'">Create Account</button>
+            <button class="btn-register" onclick="handleRegister()">Create Account</button>
+            <button class="btn-link" onclick="window.location.href='index.html'">Already have an account? Login</button>
         </div>
     </div>
 
@@ -46,7 +46,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         // *** Important: Get this config from Firebase Console and keep it secure ***
         const firebaseConfig = {
@@ -89,23 +89,26 @@
             document.getElementById('errorMessage').textContent = message;
         }
 
-        window.handleLogin = function() {
+        window.handleRegister = function() {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
             showError('');
             if(!email || !password) return showError("Please fill in Email and Password");
+            if(password.length < 6) return showError("Password must be at least 6 characters");
 
             showLoading();
-            signInWithEmailAndPassword(auth, email, password)
+            createUserWithEmailAndPassword(auth, email, password)
                 .then(() => {
                     hideLoading();
                     showError('');
-                    window.location.href = "dashboard-v2.html";
+                    alert("Registration successful! You can now login.");
+                    window.location.href = "index.html";
                 })
                 .catch((error) => {
                     hideLoading();
-                    showError("Login failed: " + error.message);
+                    console.error(error);
+                    showError("Registration failed: " + error.message);
                 });
         };
     </script>

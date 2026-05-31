@@ -1,6 +1,6 @@
 :root {
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
+    --primary: #1e3a8a;
+    --primary-hover: #1e40af;
     --secondary: #334155;
     --success: #10b981;
     --success-hover: #059669;
@@ -43,6 +43,9 @@ body.login-page {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
+    width: 320px;
+    padding: 2.5rem;
+    text-align: center;
 }
 
 .login-card {
@@ -82,7 +85,7 @@ h6 {
 
 input, select {
     width: 100%;
-    padding: 12px 16px;
+    padding: 12px 40px 12px 12px;
     margin-bottom: 15px;
     border: 2px solid var(--border);
     border-radius: var(--border-radius);
@@ -92,9 +95,7 @@ input, select {
     background: var(--bg);
     color: var(--text);
 }
-input {
-    padding-right: 40px;
-}
+
 
 input:focus, select:focus {
     outline: none;
@@ -109,20 +110,20 @@ input::placeholder, select::placeholder {
 
 .toggle-password {
     position: absolute;
-    right: 8px;
+    right: 12px;
     top: 50%;
-    transform: translateY(-70%);
+    transform: translateY(-50%);
     color: var(--text-secondary);
     background: transparent;
     font-size: 14px;
-    padding: 4px;
-    width: 32px;
-    height: 28px;
+    padding: 0;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
-    cursor: default;
+    cursor: pointer;
     box-shadow: none;
     transition: none;
     overflow: visible;
@@ -250,113 +251,16 @@ button, .btn {
 }
 
 /* Profile Styling */
-.user-profile {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 25px;
-    border: 1px solid var(--border);
-}
+.user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.user-profile img { width: 50px; height: 50px; border-radius: 12px; background: #e2e8f0; }
+.profile-info h4 { margin: 0; font-size: 16px; color: #1e293b; }
+.profile-info small { color: #64748b; }
 
-.profile-info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.profile-info img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid var(--primary);
-    object-fit: cover;
-    transition: var(--transition);
-}
-.profile-info img:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-}
-
-.profile-name {
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 4px;
-}
-
-.profile-email {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-/* Balance Card */
-.balance-card {
-    background: linear-gradient(135deg, var(--primary), #1d4ed8);
-    color: white;
-    padding: 40px 30px;
-    border-radius: var(--border-radius);
-    text-align: center;
-    margin-bottom: 25px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-}
-.balance-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.1) 0%, transparent 50%);
-}
-.balance-card small {
-    font-size: 0.9rem;
-    opacity: 0.9;
-    display: block;
-    margin-bottom: 10px;
-    position: relative;
-    z-index: 1;
-}
-.balance-card h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    position: relative;
-    z-index: 1;
-}
-
-/* Filter Group */
-.filter-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    flex: 1;
-    min-width: 80px;
-    padding: 10px 16px;
-    border: 2px solid var(--border);
-    border-radius: var(--border-radius);
-    background: var(--card-bg);
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transition);
-    color: var(--text-secondary);
-}
-.filter-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-.filter-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
+.balance-card { background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 20px; }
+.card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.btn { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-success { background: var(--success); color: white; margin-top: 10px; }
 
 /* Table Styling */
 .table-responsive {
