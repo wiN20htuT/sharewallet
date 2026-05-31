@@ -124,15 +124,6 @@ input::placeholder, select::placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-}
-.toggle-password:hover {
-    color: var(--primary);
-    background: var(--secondary);
-    border-color: var(--primary);
-}
-.toggle-password:active {
-    transform: translateY(-50%) scale(0.85);
 }
 
 .error-message {
@@ -144,7 +135,7 @@ input::placeholder, select::placeholder {
 }
 
 .btn-group {
-    margin-top: 15px;
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -177,14 +168,6 @@ button::before, .btn::before {
 button:hover::before, .btn:hover::before {
     left: 100%;
 }
-button:hover, .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-}
-button:active, .btn:active {
-    transform: translateY(0);
-}
-
 .btn-login {
     background: var(--primary);
     color: white;
@@ -408,14 +391,6 @@ table {
 th, td {
     padding: 16px;
     text-align: left;
-    border-bottom: 1px solid var(--border);
-}
-
-th {
-    background: var(--secondary);
-    position: sticky;
-    top: 0;
-    z-index: 1;
     font-weight: 600;
     color: var(--text);
 }
