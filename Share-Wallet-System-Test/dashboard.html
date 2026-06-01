@@ -3,145 +3,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="0; url=personal-dashboard.html">
     <title>Shared Wallet - Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-    <div class="container">
-        <div class="balance-card">
-            <small>Total Balance</small>
-            <h1 id="totalBalance">0 Ks</h1>
-        </div>
-
-        <div class="filter-group">
-            <button class="filter-btn" onclick="loadData('all')">All</button>
-            <button class="filter-btn" onclick="loadData('today')">Today</button>
-            <button class="filter-btn" onclick="loadData('month')">This Month</button>
-        </div>
-
-        <div class="card">
-            <h6 style="margin:0">Add New Record</h6>
-            <input type="number" id="amount" placeholder="Amount">
-            <input type="text" id="note" placeholder="Note">
-            <select id="type">
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
-            </select>
-            <button class="btn btn-success" onclick="addTransaction()">Save</button>
-        </div>
-
-        <div class="card">
-            <h6 style="margin-top:0">History</h6>
-            <div id="historyList">Loading...</div>
-        </div>
-
-        <button onclick="logout()" class="btn-logout">Logout</button>
+<body class="auth-page">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <p class="loading-text">Opening personal dashboard...</p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
-            const firebaseConfig = {
-                apiKey: "AIzaSyBBc-raJ2RfLOXHSyAZhYYzYJhSuFI37PM",
-                authDomain: "share-wallet-c7ff8.firebaseapp.com",
-                projectId: "share-wallet-c7ff8",
-                storageBucket: "share-wallet-c7ff8.firebasestorage.app",
-                messagingSenderId: "694101492185",
-                appId: "1:694101492185:web:8c5205395ffeed193ed9c8",
-                measurementId: "G-KVNP86NG6L"
-            };
-
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let unsubscribe = null;
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.loadData('all');
-            } else {
-                window.location.href = "index.html";
-            }
-        });
-
-        // စာရင်းသွင်းခြင်း
-        window.addTransaction = async function() {
-            const amount = document.getElementById('amount').value;
-            const note = document.getElementById('note').value;
-            const type = document.getElementById('type').value;
-
-            if (!amount || !note) return alert("Please fill in");
-
-            try {
-                await addDoc(collection(db, "transactions"), {
-                    amount: Number(amount),
-                    note: note,
-                    type: type,
-                    timestamp: new Date(),
-                    userId: auth.currentUser.uid
-                });
-                document.getElementById('amount').value = '';
-                document.getElementById('note').value = '';
-            } catch (e) {
-                alert("Error adding transaction: " + e.message);
-            }
-        };
-
-        // ဒေတာများ ပြန်ဖတ်ခြင်း (Filter Logic ပါဝင်သည်)
-        window.loadData = function(filterType = 'all') {
-            if (unsubscribe) unsubscribe();
-
-            const transactionsRef = collection(db, "transactions");
-            let q;
-            const now = new Date();
-
-            if (filterType === 'today') {
-                const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-                q = query(transactionsRef, where("userId", "==", auth.currentUser.uid), where("timestamp", ">=", startOfToday), orderBy("timestamp", "desc"));
-            } else if (filterType === 'month') {
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                q = query(transactionsRef, where("userId", "==", auth.currentUser.uid), where("timestamp", ">=", startOfMonth), orderBy("timestamp", "desc"));
-            } else {
-                q = query(transactionsRef, where("userId", "==", auth.currentUser.uid), orderBy("timestamp", "desc"));
-            }
-
-            unsubscribe = onSnapshot(q, (snapshot) => {
-                let listHTML = "";
-                let total = 0;
-                
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const color = data.type === 'income' ? '#28a745' : '#dc3545';
-                    const sign = data.type === 'income' ? '+' : '-';
-                    
-                    listHTML += `
-                        <div class="history-item">
-                            <div>
-                                <strong>${data.note}</strong>
-                                <br><small style="color:#888;">${data.timestamp.toDate().toLocaleDateString()}</small>
-                            </div>
-                            <span style="color: ${color}; font-weight: bold;">${sign}${data.amount} Ks</span>
-                        </div>`;
-                    
-                    if (data.type === "income") total += data.amount;
-                    else total -= data.amount;
-                });
-
-                document.getElementById('historyList').innerHTML = listHTML || "No records yet";
-                document.getElementById('totalBalance').innerText = total + " Ks";
-            }, (error) => {
-                console.error("Query Error:", error);
-            });
-        }
-
-        window.logout = function() {
-            signOut(auth).then(() => window.location.href = "index.html");
-        };
+    <script>
+        window.location.replace("personal-dashboard.html");
     </script>
 </body>
 </html>
