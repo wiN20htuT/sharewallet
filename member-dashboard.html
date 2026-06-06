@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shared Wallet - Member Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="auth-tools">
+        <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
+    </div>
+
+    <div class="body-back-tools">
+        <button class="btn btn-link back-arrow" onclick="WalletApp.navigateWithLoading('personal-dashboard.html')">Personal Dashboard</button>
+    </div>
+
+    <div class="logout-tools">
+        <button id="logoutBtn" class="btn-logout">Logout</button>
+    </div>
+
+    <main class="container">
+        <div class="dashboard-header split-header">
+            <h2 class="dashboard-title">Member Dashboard</h2>
+        </div>
+
+        <section class="balance-card">
+            <small>Total Shared Balance</small>
+            <h1 id="totalBalance">0 Ks</h1>
+        </section>
+
+        <section class="card">
+            <h6>Shared Activity</h6>
+            <div class="table-responsive table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Time</th>
+                            <th class="text-right">Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberHistoryTable"></tbody>
+                </table>
+            </div>
+            <div class="radio-filter" aria-label="Filter shared activity">
+                <label><input type="radio" name="memberFilter" value="all" checked> All</label>
+                <label><input type="radio" name="memberFilter" value="deposit"> Deposit</label>
+                <label><input type="radio" name="memberFilter" value="withdraw"> Withdraw</label>
+            </div>
+        </section>
+    </main>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading members...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import "./wallet-app.js";
+
+        const {
+            requireUser,
+            logout,
+            getTransactions,
+            getSharedBalance,
+            formatKs,
+            formatDate,
+            initTheme,
+            toggleTheme
+        } = window.WalletApp;
+
+        let allTransactions = [];
+
+        function renderMemberHistory(transactions, filter = "all") {
+            const table = document.getElementById("memberHistoryTable");
+            const filteredTransactions = transactions.filter((transaction) => {
+                const isDeposit = window.WalletApp.isDeposit(transaction);
+                if (filter === "deposit") return isDeposit;
+                if (filter === "withdraw") return !isDeposit;
+                return true;
+            });
+
+            if (!filteredTransactions.length) {
+                table.innerHTML = `<tr><td colspan="5"><p class="transaction-empty">No shared wallet transactions yet.</p></td></tr>`;
+                return;
+            }
+
+            table.innerHTML = filteredTransactions.map((transaction) => {
+                const isDeposit = window.WalletApp.isDeposit(transaction);
+                return `
+                    <tr>
+                        <td><strong>${transaction.userName || (transaction.userEmail || "Member").split("@")[0].toUpperCase()}</strong></td>
+                        <td><span class="badge ${isDeposit ? "bg-success" : "bg-danger"}">${isDeposit ? "Deposit" : "Withdraw"}</span></td>
+                        <td>${formatDate(transaction.timestamp)}</td>
+                        <td class="text-right ${isDeposit ? "amount-positive" : "amount-negative"}">${isDeposit ? "+" : "-"}${formatKs(transaction.amount)}</td>
+                        <td>${transaction.description || transaction.note || "-"}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        initTheme();
+        document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document.querySelectorAll("input[name='memberFilter']").forEach((radio) => {
+            radio.addEventListener("change", () => renderMemberHistory(allTransactions, radio.value));
+        });
+
+        requireUser(async () => {
+            allTransactions = await getTransactions();
+            document.getElementById("totalBalance").textContent = formatKs(getSharedBalance(allTransactions));
+            renderMemberHistory(allTransactions);
+        });
+    </script>
+</body>
+</html>

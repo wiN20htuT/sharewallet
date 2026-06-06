@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shared Wallet - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page login-page">
+    <div class="auth-tools">
+        <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
+    </div>
+
+    <form id="loginForm" class="card login-card" onsubmit="handleLogin(event)">
+        <h2>Shared Wallet</h2>
+        <input type="email" id="email" placeholder="Email">
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Password">
+            <button type="button" class="toggle-password" onclick="togglePassword('password', this)" aria-label="Show password">
+                <svg class="eye-icon eye-open" style="display:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-icon eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 4.63"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+            </button>
+        </div>
+        <p id="errorMessage" class="error-message"></p>
+        <p id="statusMessage" class="auth-status"></p>
+
+        <div class="btn-group">
+            <button id="loginBtn" class="btn-login" type="submit">Login</button>
+            <button type="button" class="btn-link" onclick="navigateWithLoading('register.html')">Create Account</button>
+        </div>
+    </form>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text">Processing...</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import {
+            onAuthStateChanged,
+            signInWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import {
+            doc,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+        function applyTheme(theme) {
+            const nextTheme = theme === 'light' ? 'light' : 'dark';
+            document.body.classList.toggle('light-mode', nextTheme === 'light');
+            localStorage.setItem('shareWalletTheme', nextTheme);
+            document.getElementById('themeToggle').textContent = nextTheme === 'light' ? 'Dark Mode' : 'Light Mode';
+        }
+
+        applyTheme(localStorage.getItem('shareWalletTheme') || 'dark');
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light');
+        });
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        window.navigateWithLoading = function(url) {
+            showLoading();
+            setTimeout(() => {
+                window.location.href = url;
+            }, 120);
+        };
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function showStatus(message) {
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        async function isUserVerified(user) {
+            const userSnapshot = await getDoc(doc(db, "users", user.uid));
+            return userSnapshot.exists() && userSnapshot.data().verified === true;
+        }
+
+        function sendToOtpVerification(user) {
+            sessionStorage.setItem("pendingVerificationUid", user.uid);
+            sessionStorage.setItem("pendingVerificationEmail", user.email || "");
+            window.location.href = "verify-otp.html";
+        }
+
+        window.togglePassword = function(fieldId, button) {
+            const passwordInput = document.getElementById(fieldId);
+            const eyeOpen = button.querySelector('.eye-open');
+            const eyeClosed = button.querySelector('.eye-closed');
+            const isHidden = passwordInput.type === 'password';
+
+            passwordInput.type = isHidden ? 'text' : 'password';
+            eyeOpen.style.display = isHidden ? 'block' : 'none';
+            eyeClosed.style.display = isHidden ? 'none' : 'block';
+            button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        };
+
+        window.handleLogin = async function(event) {
+            if (event) event.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            showError('');
+            showStatus('');
+            if (!email) return showError("Please enter your email");
+            if (!password) return showError("Please enter your password");
+
+            showLoading();
+            try {
+                const credential = await signInWithEmailAndPassword(auth, email, password);
+                if (!await isUserVerified(credential.user)) {
+                    hideLoading();
+                    showError("Please verify your email with the 6 digit OTP before logging in.");
+                    sendToOtpVerification(credential.user);
+                    return;
+                }
+                window.location.href = "personal-dashboard.html";
+            } catch (error) {
+                hideLoading();
+                showError("Login failed: " + error.message);
+            }
+        };
+
+        const loginNotice = sessionStorage.getItem("loginNotice");
+        if (loginNotice) {
+            showStatus(loginNotice);
+            sessionStorage.removeItem("loginNotice");
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return;
+
+            if (await isUserVerified(user)) {
+                window.location.href = "personal-dashboard.html";
+                return;
+            }
+
+            sendToOtpVerification(user);
+        });
+    </script>
+</body>
+</html>

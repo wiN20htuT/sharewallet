@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shared Wallet - Personal Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="auth-tools">
+        <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
+    </div>
+
+    <div class="logout-tools">
+        <button id="logoutBtn" class="btn-logout">Logout</button>
+    </div>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">Personal Dashboard</h2>
+        </div>
+
+        <section class="card profile-card">
+            <img id="userImg" src="" alt="Profile">
+            <div>
+                <div id="userNameDisplay" class="profile-name">Loading...</div>
+                <div id="userEmailDisplay" class="profile-email">email@example.com</div>
+            </div>
+        </section>
+
+        <section class="balance-card">
+            <small>Total Shared Balance</small>
+            <h1 id="totalBalance">0 Ks</h1>
+        </section>
+
+        <p id="withdrawStatus" class="status-note"></p>
+
+        <section class="wallet-actions">
+            <a class="icon-action" href="deposit.html">
+                <span class="icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14"></path>
+                        <path d="M5 12h14"></path>
+                    </svg>
+                </span>
+                <span>
+                    <span class="action-title">Deposit</span>
+                    <span class="action-copy">Add money with a description.</span>
+                </span>
+            </a>
+
+            <a id="withdrawAction" class="icon-action" href="withdraw.html">
+                <span class="icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                    </svg>
+                </span>
+                <span>
+                    <span class="action-title">Withdraw</span>
+                    <span class="action-copy">Available after 10,000 Ks deposit.</span>
+                </span>
+            </a>
+
+            <a class="icon-action" href="member-dashboard.html">
+                <span class="icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </span>
+                <span>
+                    <span class="action-title">Member Dashboard</span>
+                    <span class="action-copy">View shared activity.</span>
+                </span>
+            </a>
+
+            <button id="historyAction" class="icon-action" type="button">
+                <span class="icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v5h5"></path>
+                        <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path>
+                        <path d="M12 7v5l4 2"></path>
+                    </svg>
+                </span>
+                <span>
+                    <span class="action-title">History</span>
+                    <span class="action-copy">Show my saved transactions.</span>
+                </span>
+            </button>
+        </section>
+
+        <section id="historySection" class="card history-section" hidden>
+            <h6>My History</h6>
+            <div class="table-responsive table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>When</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text">Syncing wallet...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import "./wallet-app.js";
+
+        const {
+            requireUser,
+            logout,
+            getTransactions,
+            getSharedBalance,
+            getUserTransactions,
+            getUserDepositTotal,
+            canUserWithdraw,
+            formatKs,
+            formatDate,
+            getDisplayName,
+            getAvatarUrl,
+            MIN_DEPOSIT_FOR_WITHDRAW,
+            initTheme,
+            toggleTheme,
+            showAlert
+        } = window.WalletApp;
+
+        const withdrawAction = document.getElementById("withdrawAction");
+
+        function renderHistory(transactions) {
+            const historyTable = document.getElementById("historyTable");
+
+            if (!transactions.length) {
+                historyTable.innerHTML = `<tr><td colspan="4"><p class="transaction-empty">No personal transactions yet.</p></td></tr>`;
+                return;
+            }
+
+            historyTable.innerHTML = transactions.map((transaction) => {
+                const isDeposit = window.WalletApp.isDeposit(transaction);
+                return `
+                    <tr>
+                        <td>${formatDate(transaction.timestamp)}</td>
+                        <td><span class="badge ${isDeposit ? "bg-success" : "bg-danger"}">${isDeposit ? "Deposit" : "Withdraw"}</span></td>
+                        <td>${transaction.description || transaction.note || "-"}</td>
+                        <td class="text-right ${isDeposit ? "amount-positive" : "amount-negative"}">${isDeposit ? "+" : "-"}${formatKs(transaction.amount)}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        initTheme();
+        document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document.getElementById("historyAction").addEventListener("click", () => {
+            const historySection = document.getElementById("historySection");
+            historySection.hidden = !historySection.hidden;
+            document.getElementById("historyAction").querySelector(".action-copy").textContent = historySection.hidden
+                ? "Show my saved transactions."
+                : "Hide my saved transactions.";
+        });
+
+        requireUser(async (user) => {
+            document.getElementById("userNameDisplay").textContent = getDisplayName(user);
+            document.getElementById("userEmailDisplay").textContent = user.email;
+            document.getElementById("userImg").src = getAvatarUrl(user);
+
+            const transactions = await getTransactions();
+            const sharedBalance = getSharedBalance(transactions);
+            const personalTransactions = getUserTransactions(transactions, user);
+            const userDeposited = getUserDepositTotal(transactions, user);
+            const withdrawUnlocked = canUserWithdraw(transactions, user);
+
+            document.getElementById("totalBalance").textContent = formatKs(sharedBalance);
+            document.getElementById("withdrawStatus").innerHTML = withdrawUnlocked
+                ? `Withdraw is unlocked. You have deposited <strong>${formatKs(userDeposited)}</strong>.`
+                : `New users can deposit first. Withdraw unlocks after <strong>${formatKs(MIN_DEPOSIT_FOR_WITHDRAW)}</strong>; deposited so far: <strong>${formatKs(userDeposited)}</strong>.`;
+
+            withdrawAction.classList.toggle("disabled", !withdrawUnlocked);
+            withdrawAction.addEventListener("click", (event) => {
+                if (!withdrawUnlocked) {
+                    event.preventDefault();
+                    showAlert(`Please deposit at least ${formatKs(MIN_DEPOSIT_FOR_WITHDRAW)} before you withdraw money.`, "Withdraw Locked");
+                }
+            });
+
+            renderHistory(personalTransactions);
+        });
+    </script>
+</body>
+</html>

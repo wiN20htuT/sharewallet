@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shared Wallet - Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-tools">
+        <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
+    </div>
+
+    <form class="card auth-card" onsubmit="handleRegister(event)">
+        <h2>Create Account</h2>
+        <input type="email" id="email" placeholder="Email">
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Password">
+            <button type="button" class="toggle-password" onclick="togglePassword('password', this)" aria-label="Show password">
+                <svg class="eye-icon eye-open" style="display:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-icon eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 4.63"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="input-group">
+            <input type="password" id="confirmPassword" placeholder="Confirm password">
+            <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', this)" aria-label="Show password">
+                <svg class="eye-icon eye-open" style="display:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-icon eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 4.63"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+            </button>
+        </div>
+        <p id="errorMessage" class="error-message"></p>
+        <p id="statusMessage" class="auth-status"></p>
+
+        <div class="btn-group">
+            <button id="registerBtn" class="btn-register" type="submit">Register</button>
+            <button type="button" class="btn-link" onclick="navigateWithLoading('index.html')">Already have an account? Login</button>
+        </div>
+    </form>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text">Processing...</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="module">
+        import { auth, db, emailJsConfig } from "./firebase.js";
+        import {
+            createUserWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import {
+            doc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+        const OTP_EXPIRY_MS = 5 * 60 * 1000;
+
+        function applyTheme(theme) {
+            const nextTheme = theme === 'light' ? 'light' : 'dark';
+            document.body.classList.toggle('light-mode', nextTheme === 'light');
+            localStorage.setItem('shareWalletTheme', nextTheme);
+            document.getElementById('themeToggle').textContent = nextTheme === 'light' ? 'Dark Mode' : 'Light Mode';
+        }
+
+        applyTheme(localStorage.getItem('shareWalletTheme') || 'dark');
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light');
+        });
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        window.navigateWithLoading = function(url) {
+            showLoading();
+            setTimeout(() => {
+                window.location.href = url;
+            }, 120);
+        };
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function showStatus(message) {
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        function generateOtp() {
+            return String(Math.floor(100000 + Math.random() * 900000));
+        }
+
+        function validateEmailJsConfig() {
+            const missingConfig = Object.values(emailJsConfig).some((value) => !value || value.startsWith("YOUR_"));
+            if (missingConfig) {
+                throw new Error("EmailJS is not configured. Update publicKey, serviceId, and templateId in firebase.js.");
+            }
+        }
+
+        async function sendOtpEmail(email, otp) {
+            validateEmailJsConfig();
+            try {
+                window.emailjs.init(emailJsConfig.publicKey);
+                const response = await window.emailjs.send(
+                    emailJsConfig.serviceId,
+                    emailJsConfig.templateId,
+                    {
+                        to_email: email,
+                        passcode: otp,
+                        time: "5 minutes"
+                    },
+                    emailJsConfig.publicKey
+                );
+                console.log("EMAIL SENT", response);
+            } catch (error) {
+                console.error("EMAIL ERROR", error);
+                document.getElementById('errorMessage').textContent =
+                    "Could not resend OTP: " +
+                    (error?.text || error?.message || JSON.stringify(error));
+            }
+        }
+
+        const PASSWORD_REQUIREMENT_MESSAGE = "Password must be at least 6 characters and include uppercase, lowercase, and number";
+
+        function getPasswordRequirementError(password) {
+            if (password && (password.length < 6 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password))) {
+                return PASSWORD_REQUIREMENT_MESSAGE;
+            }
+            return "";
+        }
+
+        function validatePasswordWhileTyping() {
+            const message = getPasswordRequirementError(document.getElementById('password').value);
+            if (message || document.getElementById('errorMessage').textContent === PASSWORD_REQUIREMENT_MESSAGE) {
+                showError(message);
+            }
+        }
+
+        document.getElementById('password').addEventListener('input', validatePasswordWhileTyping);
+
+        window.togglePassword = function(fieldId, button) {
+            const passwordInput = document.getElementById(fieldId);
+            const eyeOpen = button.querySelector('.eye-open');
+            const eyeClosed = button.querySelector('.eye-closed');
+            const isHidden = passwordInput.type === 'password';
+
+            passwordInput.type = isHidden ? 'text' : 'password';
+            eyeOpen.style.display = isHidden ? 'block' : 'none';
+            eyeClosed.style.display = isHidden ? 'none' : 'block';
+            button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        };
+
+        window.handleRegister = async function(event) {
+            if (event) event.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            showError('');
+            showStatus('');
+            if (!email) return showError("Please enter your email");
+            if (!password) return showError("Please enter a password");
+            const passwordRequirementError = getPasswordRequirementError(password);
+            if (passwordRequirementError) return showError(passwordRequirementError);
+            if (password !== confirmPassword) return showError("Passwords do not match");
+
+            showLoading();
+            try {
+                const credential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = credential.user;
+                const otp = generateOtp();
+                const createdAt = new Date();
+                const expiresAt = new Date(createdAt.getTime() + OTP_EXPIRY_MS);
+
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    email,
+                    verified: false,
+                    createdAt,
+                    updatedAt: createdAt
+                }, { merge: true });
+
+                await setDoc(doc(db, "emailOtps", user.uid), {
+                    uid: user.uid,
+                    email,
+                    otp,
+                    createdAt,
+                    expiresAt,
+                    verified: false
+                });
+
+                await sendOtpEmail(email, otp);
+                sessionStorage.setItem("pendingVerificationUid", user.uid);
+                sessionStorage.setItem("pendingVerificationEmail", email);
+                sessionStorage.setItem("otpLastSentAt", String(Date.now()));
+                window.location.href = "verify-otp.html";
+            } catch (error) {
+                hideLoading();
+                showError("Registration failed: " + error.message);
+            }
+        };
+    </script>
+</body>
+</html>

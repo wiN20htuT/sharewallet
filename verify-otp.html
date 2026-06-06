@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shared Wallet - Verify OTP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-tools">
+        <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
+    </div>
+
+    <form class="card auth-card" onsubmit="verifyOtp(event)">
+        <h2>Verify Email</h2>
+        <p id="otpEmailText" class="auth-status"></p>
+        <input type="text" id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6 digit OTP">
+        <p id="errorMessage" class="error-message"></p>
+        <p id="statusMessage" class="auth-status"></p>
+
+        <div class="btn-group">
+            <button class="btn-login" type="submit">Verify OTP</button>
+            <button id="resendOtpBtn" class="btn-register" type="button" onclick="resendOtp()">Resend OTP</button>
+            <button type="button" class="btn-link" onclick="backToLogin()">Back to Login</button>
+        </div>
+    </form>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text">Verifying...</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="module">
+        import { auth, db, emailJsConfig } from "./firebase.js";
+        import {
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import {
+            doc,
+            getDoc,
+            setDoc,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+        const OTP_EXPIRY_MS = 5 * 60 * 1000;
+        const RESEND_COOLDOWN_MS = 60 * 1000;
+        let currentUser = null;
+        let cooldownTimer = null;
+
+        function applyTheme(theme) {
+            const nextTheme = theme === 'light' ? 'light' : 'dark';
+            document.body.classList.toggle('light-mode', nextTheme === 'light');
+            localStorage.setItem('shareWalletTheme', nextTheme);
+            document.getElementById('themeToggle').textContent = nextTheme === 'light' ? 'Dark Mode' : 'Light Mode';
+        }
+
+        applyTheme(localStorage.getItem('shareWalletTheme') || 'dark');
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light');
+        });
+
+        function showLoading(message = "Verifying...") {
+            document.querySelector(".loading-text").textContent = message;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        window.navigateWithLoading = function(url) {
+            showLoading("Opening...");
+            setTimeout(() => {
+                window.location.href = url;
+            }, 120);
+        };
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function showStatus(message) {
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        function generateOtp() {
+            return String(Math.floor(100000 + Math.random() * 900000));
+        }
+
+        function validateEmailJsConfig() {
+            const missingConfig = Object.values(emailJsConfig).some((value) => !value || value.startsWith("YOUR_"));
+            if (missingConfig) {
+                throw new Error("EmailJS is not configured. Update publicKey, serviceId, and templateId in firebase.js.");
+            }
+        }
+
+        async function sendOtpEmail(email, otp) {
+            validateEmailJsConfig();
+            try {
+emailjs.init(emailJsConfig.publicKey);
+
+const response = await emailjs.send(
+    emailJsConfig.serviceId,
+    emailJsConfig.templateId,
+    {
+        to_email: email,
+        passcode: otp,
+        time: "5 minutes"
+    }
+);
+
+console.log("EMAIL SENT:", response);
+
+
+} catch (error) {
+console.error("EMAIL ERROR:", error);
+
+
+errorMessage.textContent =
+    "Could not resend OTP: " +
+    (error?.text || error?.message || JSON.stringify(error));
+
+
+}
+
+
+
+
+        }
+
+        function getDate(value) {
+            if (!value) return null;
+            if (typeof value.toDate === "function") return value.toDate();
+            return new Date(value);
+        }
+
+        function startCooldown() {
+            const button = document.getElementById("resendOtpBtn");
+            const lastSentAt = Number(sessionStorage.getItem("otpLastSentAt") || 0);
+            const remainingMs = Math.max(0, RESEND_COOLDOWN_MS - (Date.now() - lastSentAt));
+
+            window.clearInterval(cooldownTimer);
+            if (!remainingMs) {
+                button.disabled = false;
+                button.textContent = "Resend OTP";
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = `Resend OTP (${Math.ceil(remainingMs / 1000)}s)`;
+            cooldownTimer = window.setInterval(() => {
+                const nextRemainingMs = Math.max(0, RESEND_COOLDOWN_MS - (Date.now() - lastSentAt));
+                const seconds = Math.ceil(nextRemainingMs / 1000);
+                button.textContent = seconds ? `Resend OTP (${seconds}s)` : "Resend OTP";
+
+                if (!seconds) {
+                    window.clearInterval(cooldownTimer);
+                    button.disabled = false;
+                }
+            }, 250);
+        }
+
+        async function loadVerificationState(user) {
+            currentUser = user;
+            const email = user.email || sessionStorage.getItem("pendingVerificationEmail") || "";
+            sessionStorage.setItem("pendingVerificationUid", user.uid);
+            sessionStorage.setItem("pendingVerificationEmail", email);
+            document.getElementById("otpEmailText").textContent = email ? `Code sent to ${email}` : "Enter your verification code.";
+            document.getElementById("otpCode").focus();
+            startCooldown();
+        }
+
+        window.backToLogin = async function() {
+            showLoading("Opening login...");
+            if (currentUser) {
+                await signOut(auth);
+            }
+            window.location.href = "index.html";
+        };
+
+        window.resendOtp = async function() {
+            if (!currentUser) return showError("Please log in again before requesting a new OTP.");
+
+            showError('');
+            showStatus('');
+            showLoading("Sending OTP...");
+            try {
+                const otp = generateOtp();
+                const createdAt = new Date();
+                const expiresAt = new Date(createdAt.getTime() + OTP_EXPIRY_MS);
+                const email = currentUser.email || sessionStorage.getItem("pendingVerificationEmail") || "";
+
+                await setDoc(doc(db, "emailOtps", currentUser.uid), {
+                    uid: currentUser.uid,
+                    email,
+                    otp,
+                    createdAt,
+                    expiresAt,
+                    verified: false
+                });
+
+                await sendOtpEmail(email, otp);
+                sessionStorage.setItem("otpLastSentAt", String(Date.now()));
+                showStatus("A new OTP has been sent. It expires in 5 minutes.");
+                startCooldown();
+            } catch (error) {
+                showError("Could not resend OTP: " + error.message);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        window.verifyOtp = async function(event) {
+            if (event) event.preventDefault();
+            if (!currentUser) return showError("Please log in again before verifying.");
+
+            const otp = document.getElementById("otpCode").value.trim();
+            showError('');
+            showStatus('');
+
+            if (!/^\d{6}$/.test(otp)) {
+                return showError("Please enter the 6 digit OTP code.");
+            }
+
+            showLoading("Checking OTP...");
+            try {
+                const otpRef = doc(db, "emailOtps", currentUser.uid);
+                const otpSnapshot = await getDoc(otpRef);
+
+                if (!otpSnapshot.exists()) {
+                    throw new Error("No OTP found. Please request a new OTP.");
+                }
+
+                const otpData = otpSnapshot.data();
+                const expiresAt = getDate(otpData.expiresAt);
+
+                if (otpData.verified === true) {
+                    showStatus("This email is already verified. Opening login...");
+                    await signOut(auth);
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                if (!expiresAt || expiresAt.getTime() <= Date.now()) {
+                    throw new Error("OTP expired. Please request a new OTP.");
+                }
+
+                if (otpData.otp !== otp) {
+                    throw new Error("Invalid OTP. Please check the code and try again.");
+                }
+
+                const verifiedAt = new Date();
+                await updateDoc(otpRef, {
+                    verified: true,
+                    verifiedAt
+                });
+
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    uid: currentUser.uid,
+                    email: currentUser.email || otpData.email,
+                    verified: true,
+                    verifiedAt,
+                    updatedAt: verifiedAt
+                }, { merge: true });
+
+                sessionStorage.removeItem("pendingVerificationUid");
+                sessionStorage.removeItem("pendingVerificationEmail");
+                sessionStorage.removeItem("otpLastSentAt");
+                sessionStorage.setItem("loginNotice", "Email verified. Please log in.");
+                await signOut(auth);
+                window.location.href = "index.html";
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                showError("Please log in or register again to verify your email.");
+                document.getElementById("resendOtpBtn").disabled = true;
+                return;
+            }
+
+            await loadVerificationState(user);
+        });
+    </script>
+</body>
+</html>
