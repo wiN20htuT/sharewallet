@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-page">
-    <div class="auth-tools">
+    <div class="auth-tools" style="position: static; display: flex; justify-content: flex-end; padding: 15px 20px 0;">
         <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
     </div>
 
@@ -178,6 +178,7 @@ errorMessage.textContent =
             sessionStorage.setItem("pendingVerificationEmail", email);
             document.getElementById("otpEmailText").textContent = email ? `Code sent to ${email}` : "Enter your verification code.";
             document.getElementById("otpCode").focus();
+            hideLoading(); // Hide loading overlay after initial state is loaded
             startCooldown();
         }
 
@@ -295,6 +296,7 @@ errorMessage.textContent =
             }
 
             await loadVerificationState(user);
+            // No hideLoading() here, as loadVerificationState already calls it.
         });
     </script>
 </body>

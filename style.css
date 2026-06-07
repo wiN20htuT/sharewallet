@@ -142,63 +142,77 @@ body.auth-page {
 }
 
 body:not(.login-page):not(.auth-page) {
-    padding-top: 86px;
-    padding-bottom: 92px;
+    padding: 40px 12px;
 }
 
 .auth-tools {
-    position: fixed;
-    top: 18px;
-    right: 18px;
-    width: auto;
-    height: auto;
-    z-index: 5;
+    display: flex;
+    align-items: center;
 }
 
 .body-back-tools {
-    position: fixed;
-    top: 18px;
-    left: 18px;
-    width: auto;
-    height: auto;
-    z-index: 5;
+    display: flex;
+    align-items: center;
 }
 
 .logout-tools {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    width: auto;
-    height: auto;
-    z-index: 5;
+    display: flex;
+    align-items: center;
 }
 
-.auth-tools .theme-toggle {
-    position: fixed;
-    top: 18px;
-    right: 18px;
-    margin: 0;
+/* Member Dashboard Specific Layout */
+.dashboard-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 15px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
 }
 
-.body-back-tools .back-arrow {
-    position: fixed;
-    top: 18px;
-    left: 18px;
-    margin: 0;
+.bar-left, .bar-right {
+    flex: 0 0 120px; /* Balanced side widths to keep center centered */
 }
 
-.logout-tools .btn-logout {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    margin: 0;
+.bar-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bar-center {
+    flex: 1;
+    text-align: center;
+}
+
+.bar-center .dashboard-title {
+    margin-bottom: 0;
+}
+
+.dashboard-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    gap: 15px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .container {
-    width: min(100%, 920px);
+    width: 100%;
+    max-width: 920px;
     margin: 0 auto;
-    padding: 30px;
-    overflow: hidden;
+    padding: 24px;
+    overflow: visible; /* Changed from hidden to allow glow visibility */
     border: 1px solid var(--border);
     border-radius: 18px;
     background: var(--surface);
@@ -759,15 +773,14 @@ body.light-mode .balance-card {
 }
 
 .theme-toggle {
-    position: relative;
-    width: 86px;
-    min-height: 42px;
+    width: 78px;
+    min-height: 32px;
     padding: 0;
-    border: 1px solid rgba(56, 189, 248, 0.36);
-    border-radius: 999px;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(37, 99, 235, 0.44));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(4px);
     color: transparent;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 12px 28px rgba(2, 8, 23, 0.22);
     font-size: 0;
     overflow: hidden;
 }
@@ -775,24 +788,24 @@ body.light-mode .balance-card {
 .theme-toggle::before {
     content: "";
     position: absolute;
-    left: 5px;
-    top: 5px;
-    width: 30px;
-    height: 30px;
+    left: 4px;
+    top: 4px;
+    width: 24px;
+    height: 22px;
     border-radius: 50%;
     background: #dbeafe;
     box-shadow: 0 0 16px rgba(219, 234, 254, 0.48);
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .theme-toggle::after {
-    content: "Night";
+    content: "Dark";
     position: absolute;
     right: 12px;
     top: 50%;
-    color: #dbeafe;
-    font-size: 11px;
-    font-weight: 800;
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 700;
     transform: translateY(-50%);
 }
 
@@ -810,30 +823,35 @@ body.light-mode .forgot-password {
 }
 
 body.light-mode .theme-toggle {
-    background: linear-gradient(135deg, #f4c66a, #fff8eb);
-    color: transparent;
+    background: rgba(255, 255, 255, 0.8);
 }
 
 body.light-mode .theme-toggle::before {
-    left: 49px;
+    left: 48px;
     background: #ffffff;
     box-shadow: 0 0 0 6px rgba(244, 198, 106, 0.28);
 }
 
 body.light-mode .theme-toggle::after {
-    content: "Day";
+    content: "Light";
     left: 14px;
     right: auto;
     color: #7c5a1e;
 }
 
 .back-arrow {
-    width: auto;
-    min-width: 178px;
-    padding-left: 30px;
-    padding-right: 18px;
-    text-align: center;
-    clip-path: polygon(18px 0, 100% 0, 100% 100%, 18px 100%, 0 50%);
+    width: auto !important;
+    min-height: 40px !important;
+    padding: 8px 16px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border) !important;
+    background: var(--primary-soft) !important;
+    color: var(--text) !important;
+    border-radius: 10px !important;
+    text-decoration: none;
+    font-size: 0.9rem !important;
 }
 
 .profile-card {
@@ -970,22 +988,39 @@ body.light-mode .profile-name {
 .radio-filter {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 16px;
-    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 0;
+    flex-wrap: nowrap;
 }
 
 .radio-filter label {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 40px;
-    padding: 8px 12px;
+    min-height: 38px;
+    padding: 6px 16px;
     border: 1px solid var(--border);
     border-radius: 999px;
     background: rgba(15, 23, 42, 0.58);
     color: var(--text-secondary);
     cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.radio-filter label:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(14, 165, 233, 0.1);
+}
+
+.radio-filter label:has(input:checked) {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--text);
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.15);
 }
 
 body.light-mode .radio-filter label {
@@ -1118,22 +1153,30 @@ tbody tr:hover {
 
 button[onclick="logout()"],
 .btn-logout {
-    width: auto;
-    min-width: 104px;
-    margin-top: 20px;
-    padding-right: 30px;
-    padding-left: 18px;
-    border: 1px solid rgba(248, 113, 113, 0.5);
-    background: rgba(239, 68, 68, 0.08);
+    width: auto !important;
+    min-width: 110px !important;
+    min-height: 40px !important;
+    padding: 10px 24px !important;
+    margin-top: 0 !important;
+    border: 1px solid rgba(248, 113, 113, 0.25) !important;
+    border-radius: 14px !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    backdrop-filter: blur(10px);
     color: #fecaca;
-    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.5px;
 }
 
 button[onclick="logout()"]:hover,
 .btn-logout:hover {
-    background: var(--danger);
+    transform: translateY(-2px) scale(1.04);
+    background: var(--danger) !important;
+    border-color: var(--danger) !important;
     color: white;
-    box-shadow: 0 16px 34px rgba(239, 68, 68, 0.22);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
 }
 
 .alert-overlay {

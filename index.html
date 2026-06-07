@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-page login-page">
-    <div class="auth-tools">
+    <div class="auth-tools" style="margin-bottom: 20px; width: 390px; justify-content: flex-end;">
         <button id="themeToggle" class="theme-toggle" data-theme-toggle type="button">Light Mode</button>
     </div>
 
@@ -68,6 +68,9 @@
             localStorage.setItem('shareWalletTheme', nextTheme);
             document.getElementById('themeToggle').textContent = nextTheme === 'light' ? 'Dark Mode' : 'Light Mode';
         }
+
+        // Show loading screen immediately while checking authentication state
+        showLoading();
 
         applyTheme(localStorage.getItem('shareWalletTheme') || 'dark');
         document.getElementById('themeToggle').addEventListener('click', () => {
@@ -154,14 +157,17 @@
         }
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) return;
-
-            if (await isUserVerified(user)) {
-                window.location.href = "personal-dashboard.html";
-                return;
+            if (user) {
+                if (await isUserVerified(user)) {
+                    window.location.href = "personal-dashboard.html";
+                    return;
+                }
+                sendToOtpVerification(user);
+            } else {
+                // Only show login UI when we are sure no user session exists
+                hideLoading();
+                document.getElementById('loginForm').style.display = 'block';
             }
-
-            sendToOtpVerification(user);
         });
     </script>
 </body>
